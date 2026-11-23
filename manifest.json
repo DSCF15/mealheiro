@@ -1,0 +1,28 @@
+{
+  "id": "./",
+  "name": "Mealheiro — Finanças Pessoais",
+  "short_name": "Mealheiro",
+  "description": "Gestão de finanças pessoais simples e privada, com funcionamento offline.",
+  "lang": "pt-PT",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f2",
+  "theme_color": "#f5f5f2",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo movimento",
+      "short_name": "Novo",
+      "url": "./index.html?novo=1",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

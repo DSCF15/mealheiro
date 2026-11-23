@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Mealheiro</title>
+  <meta name="description" content="Gestão de finanças pessoais simples e privada. Os dados ficam no teu dispositivo.">
+  <meta name="theme-color" content="#f5f5f2">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mealheiro">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/theme-boot.js"></script>
+</head>
+<body>
+  <main id="view" tabindex="-1"></main>
+
+  <button id="fab" class="fab" data-action="new-tx" aria-label="Novo movimento"></button>
+
+  <nav id="nav" class="nav" aria-label="Navegação principal"></nav>
+
+  <dialog id="sheet" class="sheet" aria-label="Painel"></dialog>
+
+  <noscript><p style="padding:24px">O Mealheiro precisa de JavaScript para funcionar.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
