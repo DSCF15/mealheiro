@@ -1,6 +1,6 @@
 // Service worker: guarda a aplicação em cache para funcionar sem internet.
 // Aumenta VERSION sempre que publicares alterações.
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.1.0';
 const CACHE = `mealheiro-${VERSION}`;
 
 const SHELL = [

@@ -43,6 +43,9 @@ const PATHS = {
   umbrella: 'M3 12a9 9 0 0 1 18 0zM12 12v7a2 2 0 0 0 4 0M12 3V2',
   target: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 12h.01',
   shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z',
+  pizza: 'M12 3c3.6 0 6.8 1.1 9 3L12 21 3 6c2.2-1.9 5.4-3 9-3zM9 9h.01M14 10h.01M12 15h.01',
+  hammer: 'M14 5l5 5-2 2-5-5zM13 6l-2-2H7l3 3M12 9l-8 8a1.4 1.4 0 0 0 3 3l8-8',
+  laptop: 'M5 5h14a1 1 0 0 1 1 1v10H4V6a1 1 0 0 1 1-1zM2 19h20',
 };
 
 export const icon = (name, size = 22) => `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${PATHS[name] || PATHS.tag}"/></svg>`;

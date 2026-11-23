@@ -5,6 +5,12 @@ export const COLORS = ['blue', 'orange', 'aqua', 'yellow', 'magenta', 'green', '
 export const CATEGORY_ICONS = [
   'cart', 'house', 'car', 'heart', 'film', 'bag', 'book', 'repeat', 'wallet', 'gift', 'plane', 'coffee',
   'bolt', 'phone', 'dumbbell', 'paw', 'briefcase', 'star', 'umbrella', 'target', 'shield', 'safe',
+  'pizza', 'hammer', 'laptop',
+];
+const INCOME_SOURCES = [
+  { id: 'cat-pizzeria', name: 'Pizzaria', icon: 'pizza', color: 'orange', kind: 'income' },
+  { id: 'cat-works', name: 'Obras', icon: 'hammer', color: 'yellow', kind: 'income' },
+  { id: 'cat-digital', name: 'Produtos digitais', icon: 'laptop', color: 'violet', kind: 'income' },
 ];
 export const MAX_CENTS = 99999999999;
 
@@ -147,7 +153,22 @@ export const billsForMonth = (s, month) => s.bills
   .map((bill) => ({ bill, period: month, ...billStatus(s, bill, month) }))
   .sort((a, b) => a.bill.dueDay - b.bill.dueDay);
 
-export const potAmount = (budget, pot) => (pot.mode === 'percent' ? Math.round((budget.income * pot.value) / 100) : pot.value);
+/** Valor a distribuir: o que entrou no mês (variável) ou o rendimento definido (fixo). */
+export const budgetBase = (s, month) => (s.budget.incomeMode === 'fixed' ? s.budget.income : monthTotals(s, month).income);
+export const potAmount = (base, pot) => (pot.mode === 'percent' ? Math.round((base * pot.value) / 100) : pot.value);
+
+export function incomeBySource(s, month) {
+  const totals = new Map();
+  for (const t of s.transactions) {
+    if (t.type !== 'income' || monthOf(t.date) !== month) continue;
+    const key = t.categoryId || 'none';
+    totals.set(key, (totals.get(key) || 0) + t.amount);
+  }
+  return [...totals].map(([id, value]) => {
+    const c = s.categories.find((x) => x.id === id);
+    return { id, value, name: c?.name || 'Sem categoria', color: c?.color || 'none' };
+  }).sort((a, b) => b.value - a.value);
+}
 
 export function potSpent(s, pot, month) {
   const cats = new Set(pot.categoryIds);
@@ -184,7 +205,7 @@ export function defaultState() {
   const cat = (id, name, icon, color, kind = 'expense') => ({ id, name, icon, color, kind });
   return {
     version: 1,
-    settings: { theme: 'system', openingBalance: 0, lastBackup: null, onboarded: false },
+    settings: { theme: 'system', openingBalance: 0, lastBackup: null, onboarded: false, incomeSourcesAdded: true },
     categories: [
       cat('cat-food', 'Alimentação', 'cart', 'orange'),
       cat('cat-home', 'Casa', 'house', 'blue'),
@@ -194,12 +215,14 @@ export function defaultState() {
       cat('cat-shopping', 'Compras', 'bag', 'magenta'),
       cat('cat-education', 'Educação', 'book', 'yellow'),
       cat('cat-subs', 'Subscrições', 'repeat', 'green'),
+      ...INCOME_SOURCES.map((c) => ({ ...c })),
       cat('cat-salary', 'Salário', 'briefcase', 'green', 'income'),
       cat('cat-extra', 'Rendimentos extra', 'wallet', 'aqua', 'income'),
     ],
     transactions: [],
     budget: {
       income: 0,
+      incomeMode: 'variable',
       pots: [
         { id: 'pot-needs', name: 'Necessidades', color: 'blue', mode: 'percent', value: 50, isSavings: false, categoryIds: ['cat-food', 'cat-home', 'cat-transport', 'cat-health', 'cat-education'] },
         { id: 'pot-wants', name: 'Desejos', color: 'violet', mode: 'percent', value: 30, isSavings: false, categoryIds: ['cat-fun', 'cat-shopping', 'cat-subs'] },
@@ -232,6 +255,14 @@ export function normalize(raw) {
   const categories = unique(raw.categories.filter((c) => c && text(c.name)).map((c) => ({
     id: id(c.id), name: text(c.name, 40), icon: icon(c.icon), color: color(c.color), kind: c.kind === 'income' ? 'income' : 'expense',
   })));
+  // Migração única: acrescenta as fontes de rendimento sem repor as que forem apagadas depois.
+  if (!raw.settings?.incomeSourcesAdded) {
+    for (const source of INCOME_SOURCES) {
+      const exists = categories.some((c) => c.id === source.id
+        || (c.kind === 'income' && c.name.toLowerCase() === source.name.toLowerCase()));
+      if (!exists) categories.push({ ...source });
+    }
+  }
   const catIds = new Set(categories.map((c) => c.id));
   const catRef = (v) => (catIds.has(v) ? v : null);
 
@@ -290,7 +321,20 @@ export function normalize(raw) {
       openingBalance: Number.isSafeInteger(st.openingBalance) ? st.openingBalance : 0,
       lastBackup: typeof st.lastBackup === 'string' ? st.lastBackup : null,
       onboarded: Boolean(st.onboarded),
+      incomeSourcesAdded: true,
     },
-    categories, transactions, budget: { income: isCents(raw.budget.income) ? raw.budget.income : 0, pots }, bills, debts, goals,
+    categories,
+    transactions,
+    budget: {
+      income: isCents(raw.budget.income) ? raw.budget.income : 0,
+      // Quem já definiu um rendimento fixo mantém esse modo.
+      incomeMode: ['fixed', 'variable'].includes(raw.budget.incomeMode)
+        ? raw.budget.incomeMode
+        : (raw.budget.income > 0 ? 'fixed' : 'variable'),
+      pots,
+    },
+    bills,
+    debts,
+    goals,
   };
 }

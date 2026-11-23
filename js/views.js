@@ -1,6 +1,6 @@
 import { icon } from './icons.js';
 import {
-  balance, billsForMonth, debtPaid, debtRemaining, debtTotals, fmt, fmtDate, fmtMonth, goalSaved, monthOf, monthTotals,
+  balance, billsForMonth, budgetBase, incomeBySource, debtPaid, debtRemaining, debtTotals, fmt, fmtDate, fmtMonth, goalSaved, monthOf, monthTotals,
   pct, potAmount, potSpent, signed, sortTx, spendByCategory, today, totalSaved, unassignedSpend, upcomingBills,
 } from './logic.js';
 
@@ -184,13 +184,16 @@ function transactions(s, ui) {
 }
 
 function potCard(s, pot, month) {
-  const target = potAmount(s.budget, pot);
+  const base = budgetBase(s, month);
+  const target = potAmount(base, pot);
   const spent = potSpent(s, pot, month);
   const left = target - spent;
   const p = pct(spent, target);
   let tone = '';
   let status;
-  if (pot.isSavings) {
+  if (base === 0 && pot.mode === 'percent') {
+    status = '<span class="muted">À espera de receitas</span>';
+  } else if (pot.isSavings) {
     status = left > 0 ? `<span class="muted">Faltam ${fmt(left)}</span>` : `<span class="good">${icon('check', 13).replace('class="ico"', 'class="ico" style="display:inline;vertical-align:-2px"')} Meta atingida</span>`;
   } else if (left < 0) {
     tone = 'bad';
@@ -199,7 +202,8 @@ function potCard(s, pot, month) {
     tone = p >= 80 ? 'warn' : '';
     status = `<span class="${tone === 'warn' ? 'warn' : 'good'}">Faltam ${fmt(left)}</span>`;
   }
-  const rule = pot.mode === 'percent' ? `${String(pot.value).replace('.', ',')}% do rendimento` : 'Valor fixo';
+  const baseName = s.budget.incomeMode === 'fixed' ? 'rendimento' : 'recebido';
+  const rule = pot.mode === 'percent' ? `${String(pot.value).replace('.', ',')}% do ${baseName}` : 'Valor fixo';
   return `<button class="card pot" data-action="edit-pot" data-id="${esc(pot.id)}">
     <span class="pot-head"><span class="swatch" style="background:${colorVar(pot.color)};width:14px;height:14px"></span>
       <span class="grow"><b>${esc(pot.name)}</b><span class="muted small">${rule}</span></span>
@@ -211,15 +215,19 @@ function potCard(s, pot, month) {
 
 function budgetPots(s, ui) {
   const month = ui.budgetMonth;
-  const allocated = s.budget.pots.reduce((n, p) => n + potAmount(s.budget, p), 0);
-  const free = s.budget.income - allocated;
+  const base = budgetBase(s, month);
+  const variable = s.budget.incomeMode !== 'fixed';
+  const allocated = s.budget.pots.reduce((n, p) => n + potAmount(base, p), 0);
+  const free = base - allocated;
   const unassigned = unassignedSpend(s, month);
+  const sources = variable ? incomeBySource(s, month) : [];
   return `<button class="card pot" data-action="edit-income">
-      <span class="split"><span>Rendimento mensal</span><span style="color:var(--accent);font-weight:650">Editar</span></span>
-      <span class="big">${fmt(s.budget.income)}</span>
-      ${s.budget.income ? `${bar(pct(allocated, s.budget.income), free < 0 ? 'bad' : '', 'Rendimento distribuído')}
+      <span class="split"><span>${variable ? 'Recebido neste mês' : 'Rendimento mensal'}</span><span style="color:var(--accent);font-weight:650">Alterar</span></span>
+      <span class="big">${fmt(base)}</span>
+      ${sources.map((r) => `<span class="split"><span style="display:inline-flex;align-items:center;gap:7px"><span class="swatch" style="background:${colorVar(r.color)}"></span>${esc(r.name)}</span><span class="num">${fmt(r.value)}</span></span>`).join('')}
+      ${base ? `${bar(pct(allocated, base), free < 0 ? 'bad' : '', 'Rendimento distribuído')}
       <span class="split"><span>Distribuído ${fmt(allocated)}</span>${free < 0 ? `<span class="bad"><b>Excede em ${fmt(-free)}</b></span>` : free > 0 ? `<span class="warn">Por distribuir ${fmt(free)}</span>` : '<span class="good">Tudo distribuído</span>'}</span>`
-    : '<span class="muted small">Define o teu rendimento para calcular os potes.</span>'}
+    : `<span class="muted small">${variable ? 'Regista o que recebes com o botão + e os potes dividem o valor automaticamente.' : 'Define o teu rendimento para calcular os potes.'}</span>`}
     </button>
     ${s.budget.pots.map((p) => potCard(s, p, month)).join('')}
     ${unassigned ? `<div class="note">${fmt(unassigned)} em despesas sem pote este mês. Associa as categorias a um pote para as contabilizar.</div>` : ''}

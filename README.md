@@ -7,7 +7,7 @@ Aplicação web (PWA) de finanças pessoais em português de Portugal, pensada p
 - **Início:** saldo disponível, entradas e saídas do mês, gráfico de gastos por categoria e próximos pagamentos.
 - **Movimentos:** despesas e receitas com valor, data, descrição, categoria e método de pagamento. Filtros por mês, categoria e tipo, e pesquisa.
 - **Categorias:** criar, editar e apagar, com ícone e cor.
-- **Orçamento:** rendimento mensal distribuído por potes, em percentagem ou valor fixo (por omissão 50/30/20), com barras de progresso.
+- **Orçamento:** divide o que realmente entrou em cada mês, ou um rendimento fixo, por potes em percentagem ou valor fixo (por omissão 50/30/20), com barras de progresso e total por fonte de rendimento.
 - **Pagamentos mensais:** contas recorrentes com dia de vencimento. Marcar como pago desconta no saldo e cria o movimento.
 - **Dívidas:** separadores "Devem-me" e "Devo", com amortizações parciais até à liquidação.
 - **Poupança:** cofres com valor alvo e botões para adicionar ou retirar dinheiro do saldo.

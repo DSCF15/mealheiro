@@ -1,5 +1,5 @@
 import {
-  debtPaid, debtRemaining, fmtPlain, goalSaved, potAmount, signed, sortTx, today,
+  budgetBase, debtPaid, debtRemaining, fmtPlain, goalSaved, monthOf, potAmount, signed, sortTx, today,
 } from './logic.js';
 
 const TYPE = { income: 'Receita', expense: 'Despesa', transfer: 'Transferência' };
@@ -108,8 +108,8 @@ export function toXLSX(s) {
     ['Movimentos', [['Data', 'Tipo', 'Descrição', 'Categoria', 'Método', 'Valor (€)'],
       ...sortTx(s.transactions).map((t) => [date(t.date), TYPE[t.type], t.description, t.type === 'transfer' ? '' : catName(s, t.categoryId), t.method, money(signed(t))])]],
     ['Categorias', [['Nome', 'Tipo'], ...s.categories.map((c) => [c.name, c.kind === 'income' ? 'Receita' : 'Despesa'])]],
-    ['Orçamento', [['Pote', 'Modo', 'Definido', 'Valor mensal (€)'],
-      ...s.budget.pots.map((p) => [p.name, p.mode === 'percent' ? 'Percentagem' : 'Valor fixo', p.mode === 'percent' ? `${p.value}%` : fmtPlain(p.value), money(potAmount(s.budget, p))])]],
+    ['Orçamento', [['Pote', 'Modo', 'Definido', 'Valor neste mês (€)'],
+      ...s.budget.pots.map((p) => [p.name, p.mode === 'percent' ? 'Percentagem' : 'Valor fixo', p.mode === 'percent' ? `${p.value}%` : fmtPlain(p.value), money(potAmount(budgetBase(s, monthOf(today())), p))])]],
     ['Pagamentos mensais', [['Nome', 'Valor (€)', 'Dia', 'Categoria', 'Método'],
       ...s.bills.map((b) => [b.name, money(b.amount), b.dueDay, catName(s, b.categoryId), b.method])]],
     ['Dívidas', [['Tipo', 'Pessoa', 'Motivo', 'Data', 'Total (€)', 'Pago (€)', 'Em falta (€)'],

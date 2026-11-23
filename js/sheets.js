@@ -1,6 +1,6 @@
 import { icon } from './icons.js';
 import {
-  CATEGORY_ICONS, COLORS, METHODS, balance, debtPaid, debtRemaining, fmt, fmtDate, fmtMonth, fmtPlain, goalMoves, goalSaved,
+  CATEGORY_ICONS, COLORS, METHODS, balance, budgetBase, monthOf, debtPaid, debtRemaining, fmt, fmtDate, fmtMonth, fmtPlain, goalMoves, goalSaved,
   pct, potAmount, today,
 } from './logic.js';
 import { avatar, bar, colorVar, esc } from './views.js';
@@ -90,9 +90,14 @@ export const categorySheet = (s, c) => `<form class="sheet-in" data-form="catego
   ${iconPicker(c?.icon || 'wallet')}${colorPicker(c?.color || 'blue')}
   ${error}<button class="btn primary">Guardar</button></form>`;
 
-export const incomeSheet = (s) => `<form class="sheet-in" data-form="income" novalidate>${head('Rendimento mensal')}
-  <label class="field"><span>Valor (€)</span><input class="amount-input" name="amount" inputmode="decimal" autocomplete="off" placeholder="0,00" value="${s.budget.income ? fmtPlain(s.budget.income) : ''}" autofocus></label>
+export const incomeSheet = (s) => {
+  const fixed = s.budget.incomeMode === 'fixed';
+  return `<form class="sheet-in" data-form="income" novalidate>${head('Como recebes?')}
+  ${radioSeg('incomeMode', fixed ? 'fixed' : 'variable', [['variable', 'Variável'], ['fixed', 'Valor fixo']])}
+  <p class="note" id="income-variable" ${fixed ? 'hidden' : ''}>Os potes dividem o que realmente entrou em cada mês. Ideal para biscates e vendas.</p>
+  <label class="field" id="income-fixed" ${fixed ? '' : 'hidden'}><span>Rendimento mensal (€)</span><input class="amount-input" name="amount" inputmode="decimal" autocomplete="off" placeholder="0,00" value="${s.budget.income ? fmtPlain(s.budget.income) : ''}"></label>
   ${error}<button class="btn primary">Guardar</button></form>`;
+};
 
 export function potSheet(s, pot) {
   const mode = pot?.mode || 'percent';
@@ -104,7 +109,7 @@ export function potSheet(s, pot) {
     <label class="field"><span>Nome</span><input name="name" maxlength="40" value="${esc(pot?.name || '')}" placeholder="Ex.: Férias" autocomplete="off"></label>
     <div class="field"><span>Distribuição</span>${radioSeg('mode', mode, [['percent', 'Percentagem'], ['fixed', 'Valor fixo']])}</div>
     <label class="field"><span id="pot-value-label">${mode === 'percent' ? 'Percentagem (%)' : 'Valor (€)'}</span><input name="value" inputmode="decimal" autocomplete="off" value="${value}" placeholder="0"></label>
-    ${pot ? `<p class="muted small">Corresponde a ${fmt(potAmount(s.budget, pot))} por mês.</p>` : ''}
+    ${pot ? `<p class="muted small">Este mês corresponde a ${fmt(potAmount(budgetBase(s, monthOf(today())), pot))}.</p>` : ''}
     <label class="check"><input type="checkbox" name="isSavings" ${pot?.isSavings ? 'checked' : ''}><span>Contar depósitos nos cofres de poupança</span></label>
     <fieldset class="field"><legend>Categorias deste pote</legend><div class="chips">
       ${s.categories.filter((c) => c.kind === 'expense').map((c) => `<label class="chip"><input type="checkbox" name="categoryIds" value="${esc(c.id)}" ${pot?.categoryIds.includes(c.id) ? 'checked' : ''}><span><span class="dot" style="background:${colorVar(c.color)}">${icon(c.icon, 14)}</span>${esc(c.name)}${owner(c.id) ? ` <small class="muted">(${esc(owner(c.id).name)})</small>` : ''}</span></label>`).join('')}

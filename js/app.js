@@ -432,12 +432,16 @@ const forms = {
     return undefined;
   },
   income(data, form) {
+    const incomeMode = data.get('incomeMode');
     const raw = String(data.get('amount')).trim();
     const value = raw ? parseMoney(raw, { allowZero: true }) : 0;
-    if (value == null) return fail(form, 'Indica um valor válido.');
+    if (incomeMode === 'fixed' && value == null) return fail(form, 'Indica um valor válido.');
     popSheet();
-    commit((s) => { s.budget.income = value; });
-    toast('Rendimento atualizado');
+    commit((s) => {
+      s.budget.incomeMode = incomeMode;
+      if (incomeMode === 'fixed') s.budget.income = value;
+    });
+    toast(incomeMode === 'fixed' ? 'Rendimento fixo guardado' : 'Orçamento pelo que recebes');
     return undefined;
   },
   pot(data, form) {
@@ -599,6 +603,10 @@ document.addEventListener('change', async (e) => {
         t.form.querySelector('#tx-cats input[value=""]').checked = true;
       }
     });
+  }
+  if (t.name === 'incomeMode') {
+    t.form.querySelector('#income-fixed').hidden = t.value !== 'fixed';
+    t.form.querySelector('#income-variable').hidden = t.value === 'fixed';
   }
   if (t.name === 'mode' && t.form?.dataset.form === 'pot') {
     t.form.querySelector('#pot-value-label').textContent = t.value === 'percent' ? 'Percentagem (%)' : 'Valor (€)';
